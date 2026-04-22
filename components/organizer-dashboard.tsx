@@ -18,7 +18,7 @@ export function OrganizerDashboard({ profile }: { profile: any }) {
             <Search className="h-8 w-8 text-primary" />
             <p className="font-medium">Find musicians</p>
             <p className="text-sm text-muted-foreground">Browse profiles and send booking requests</p>
-            <Button className="w-full" render={<Link href="/" />}>
+            <Button className="w-full" nativeButton={false} render={<Link href="/" />}>
               Browse
             </Button>
           </CardContent>
@@ -28,7 +28,7 @@ export function OrganizerDashboard({ profile }: { profile: any }) {
             <Music2 className="h-8 w-8 text-primary" />
             <p className="font-medium">My bookings</p>
             <p className="text-sm text-muted-foreground">Track the status of your booking requests</p>
-            <Button variant="outline" className="w-full" render={<Link href="/bookings" />}>
+            <Button variant="outline" className="w-full" nativeButton={false} render={<Link href="/bookings" />}>
               View bookings
             </Button>
           </CardContent>

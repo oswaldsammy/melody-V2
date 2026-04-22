@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { MusicianCard, type MusicianListing } from '@/components/musician-card'
 import { SearchFilters } from '@/components/search-filters'
@@ -16,10 +17,21 @@ export default async function HomePage({ searchParams }: PageProps) {
   const params = await searchParams
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    if (profile?.role === 'musician') redirect('/dashboard')
+  }
+
   let query = supabase
     .from('musician_listings')
     .select('*')
     .order('avg_rating', { ascending: false })
+    .order('created_at', { ascending: false })
 
   if (params.q) query = query.ilike('full_name', `%${params.q}%`)
   if (params.genre) query = query.contains('genres', [params.genre])

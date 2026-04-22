@@ -25,10 +25,10 @@ export default function SignupPage() {
     setLoading(true)
     const supabase = createClient()
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { full_name: fullName, role } },
     })
 
     if (error) {
@@ -37,16 +37,15 @@ export default function SignupPage() {
       return
     }
 
-    if (data.user) {
-      await supabase.from('profiles').update({ role }).eq('id', data.user.id)
-
-      if (role === 'musician') {
-        await supabase.from('musicians').insert({ id: data.user.id })
-      }
+    toast.success('Account created!')
+    // If session is active (email confirmation disabled), route directly
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      router.push(role === 'musician' ? '/dashboard' : '/')
+      router.refresh()
+    } else {
+      router.push('/auth/login')
     }
-
-    toast.success('Account created! Please check your email to confirm.')
-    router.push('/auth/login')
     setLoading(false)
   }
 

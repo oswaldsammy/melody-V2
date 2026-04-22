@@ -21,13 +21,21 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       toast.error(error.message)
-    } else {
-      router.push('/')
-      router.refresh()
+      setLoading(false)
+      return
     }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+
+    router.push(profile?.role === 'musician' ? '/dashboard' : '/')
+    router.refresh()
     setLoading(false)
   }
 

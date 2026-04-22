@@ -5,30 +5,49 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Music2, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { RoleSwitcher } from '@/components/role-switcher'
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 
-const navLinks = [
+const organizerLinks = [
   { href: '/', label: 'Browse' },
   { href: '/bookings', label: 'My Bookings' },
+]
+
+const musicianLinks = [
   { href: '/dashboard', label: 'My Profile' },
+  { href: '/bookings', label: 'Requests' },
 ]
 
 export function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [role, setRole] = useState<'musician' | 'organizer' | null>(null)
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    const loadRole = async (uid: string) => {
+      const { data } = await supabase.from('profiles').select('role').eq('id', uid).single()
+      setRole(data?.role ?? null)
+    }
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+      if (data.user) loadRole(data.user.id)
+    })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null)
+      if (session?.user) loadRole(session.user.id)
+      else setRole(null)
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  const navLinks = user
+    ? role === 'musician' ? musicianLinks : organizerLinks
+    : [{ href: '/', label: 'Browse' }]
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -62,15 +81,18 @@ export function Navbar() {
 
         <div className="hidden items-center gap-2 md:flex">
           {user ? (
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              Sign out
-            </Button>
+            <>
+              <RoleSwitcher userId={user.id} />
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                Sign out
+              </Button>
+            </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" render={<Link href="/auth/login" />}>
+              <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/auth/login" />}>
                 Log in
               </Button>
-              <Button size="sm" render={<Link href="/auth/signup" />}>
+              <Button size="sm" nativeButton={false} render={<Link href="/auth/signup" />}>
                 Sign up
               </Button>
             </>
@@ -98,15 +120,18 @@ export function Navbar() {
               ))}
               <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
                 {user ? (
-                  <Button variant="outline" size="sm" onClick={handleSignOut}>
-                    Sign out
-                  </Button>
+                  <>
+                    <RoleSwitcher userId={user.id} />
+                    <Button variant="outline" size="sm" onClick={handleSignOut}>
+                      Sign out
+                    </Button>
+                  </>
                 ) : (
                   <>
-                    <Button variant="ghost" size="sm" render={<Link href="/auth/login" onClick={() => setOpen(false)} />}>
+                    <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/auth/login" onClick={() => setOpen(false)} />}>
                       Log in
                     </Button>
-                    <Button size="sm" render={<Link href="/auth/signup" onClick={() => setOpen(false)} />}>
+                    <Button size="sm" nativeButton={false} render={<Link href="/auth/signup" onClick={() => setOpen(false)} />}>
                       Sign up
                     </Button>
                   </>

@@ -103,17 +103,27 @@ create policy "Reviews are viewable by everyone" on public.reviews
 create policy "Organizers can create reviews" on public.reviews
   for insert with check (auth.uid() = organizer_id);
 
--- Trigger to create profile on signup
+-- Trigger to create profile (and musicians row if applicable) on signup
 create or replace function public.handle_new_user()
 returns trigger as $$
+declare
+  user_role text;
 begin
-  insert into public.profiles (id, email, full_name, avatar_url)
+  user_role := coalesce(new.raw_user_meta_data->>'role', 'organizer');
+
+  insert into public.profiles (id, email, full_name, avatar_url, role)
   values (
     new.id,
     new.email,
     new.raw_user_meta_data->>'full_name',
-    new.raw_user_meta_data->>'avatar_url'
+    new.raw_user_meta_data->>'avatar_url',
+    user_role
   );
+
+  if user_role = 'musician' then
+    insert into public.musicians (id) values (new.id);
+  end if;
+
   return new;
 end;
 $$ language plpgsql security definer;
