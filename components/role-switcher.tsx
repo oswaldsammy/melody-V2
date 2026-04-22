@@ -13,8 +13,12 @@ export function RoleSwitcher({ userId }: { userId: string }) {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('profiles').select('role').eq('id', userId).single()
-      .then(({ data }) => setRole(data?.role ?? null))
+    supabase.auth.getSession().then(({ data }) => {
+      const metaRole = data.session?.user.user_metadata?.role as 'musician' | 'organizer' | undefined
+      if (metaRole) { setRole(metaRole); return }
+      supabase.from('profiles').select('role').eq('id', userId).single()
+        .then(({ data }) => setRole((data?.role as 'musician' | 'organizer') ?? 'organizer'))
+    })
   }, [userId])
 
   const toggle = async () => {
@@ -23,8 +27,11 @@ export function RoleSwitcher({ userId }: { userId: string }) {
     setSwitching(true)
     const supabase = createClient()
 
-    const { error } = await supabase.from('profiles').update({ role: next }).eq('id', userId)
-    if (error) {
+    const [profileRes] = await Promise.all([
+      supabase.from('profiles').update({ role: next }).eq('id', userId),
+      supabase.auth.updateUser({ data: { role: next } }),
+    ])
+    if (profileRes.error) {
       toast.error('Failed to switch role')
       setSwitching(false)
       return
@@ -44,24 +51,22 @@ export function RoleSwitcher({ userId }: { userId: string }) {
     setSwitching(false)
   }
 
-  if (!role) return null
-
   return (
     <button
       onClick={toggle}
-      disabled={switching}
+      disabled={switching || !role}
       className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
-      title="Click to switch mode"
+      title="Click to switch between Organizer and Musician"
     >
       {role === 'musician' ? (
         <>
           <Music2 className="h-3.5 w-3.5 text-primary" />
-          <span className="hidden sm:inline">Musician</span>
+          <span>Musician</span>
         </>
       ) : (
         <>
           <Briefcase className="h-3.5 w-3.5 text-primary" />
-          <span className="hidden sm:inline">Organizer</span>
+          <span>{role === 'organizer' ? 'Organizer' : 'Loading…'}</span>
         </>
       )}
     </button>

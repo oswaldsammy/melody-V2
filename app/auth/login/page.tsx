@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { GoogleSignInButton } from '@/components/google-signin-button'
 import { toast } from 'sonner'
 
 export default function LoginPage() {
@@ -50,6 +52,12 @@ export default function LoginPage() {
           <CardDescription>Sign in to your Melody account</CardDescription>
         </CardHeader>
         <CardContent>
+          <GoogleSignInButton />
+          <div className="my-4 flex items-center gap-3">
+            <Separator className="flex-1" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <Separator className="flex-1" />
+          </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -71,6 +79,11 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+            </div>
+            <div className="flex items-center justify-between">
+              <Link href="/auth/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">
+                Forgot password?
+              </Link>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in…' : 'Sign in'}

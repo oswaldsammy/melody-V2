@@ -2,12 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { MusicianCard, type MusicianListing } from '@/components/musician-card'
 import { SearchFilters } from '@/components/search-filters'
-
-const ALL_GENRES = [
-  'Jazz', 'Classical', 'Rock', 'Pop', 'Blues', 'Country', 'R&B', 'Hip Hop',
-  'Folk', 'Electronic', 'Latin', 'Gospel', 'Reggae', 'Funk', 'Soul', 'Metal',
-  'Acoustic', 'Wedding', 'Corporate', 'DJ',
-]
+import { GENRES } from '@/lib/constants'
 
 interface PageProps {
   searchParams: Promise<{ genre?: string; city?: string; available?: string; q?: string }>
@@ -49,7 +44,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <SearchFilters genres={ALL_GENRES} />
+      <SearchFilters genres={[...GENRES]} />
 
       {!musicians || musicians.length === 0 ? (
         <div className="mt-16 text-center">

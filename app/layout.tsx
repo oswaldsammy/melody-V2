@@ -42,9 +42,16 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} dark`}
     >
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
         <Navbar />
         <main className="flex-1">{children}</main>
+        <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-4 px-4">
+            <span>© {new Date().getFullYear()} Melody</span>
+            <a href="/terms" className="hover:text-foreground">Terms</a>
+            <a href="/privacy" className="hover:text-foreground">Privacy</a>
+          </div>
+        </footer>
         <Toaster richColors position="top-right" />
       </body>
     </html>

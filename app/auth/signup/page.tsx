@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Separator } from '@/components/ui/separator'
+import { GoogleSignInButton } from '@/components/google-signin-button'
 import { toast } from 'sonner'
 
 export default function SignupPage() {
@@ -60,6 +62,12 @@ export default function SignupPage() {
           <CardDescription>Join Melody to hire or perform</CardDescription>
         </CardHeader>
         <CardContent>
+          <GoogleSignInButton role={role} />
+          <div className="my-4 flex items-center gap-3">
+            <Separator className="flex-1" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <Separator className="flex-1" />
+          </div>
           <Tabs value={role} onValueChange={(v) => setRole(v as 'organizer' | 'musician')} className="mb-4">
             <TabsList className="w-full">
               <TabsTrigger value="organizer" className="flex-1">I hire musicians</TabsTrigger>

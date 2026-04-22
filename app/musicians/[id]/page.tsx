@@ -109,6 +109,40 @@ export default async function MusicianProfilePage({ params }: PageProps) {
             </Card>
           )}
 
+          {musician.media_urls?.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Portfolio</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-2">
+                  {musician.media_urls.map((url: string) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={url} src={url} alt="" className="aspect-square w-full rounded-lg object-cover" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {(musician.youtube_url || musician.soundcloud_url) && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Listen & watch</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                {musician.youtube_url && (
+                  <a href={musician.youtube_url} target="_blank" rel="noreferrer"
+                    className="block rounded-lg border border-border p-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+                    ▶ Watch on YouTube
+                  </a>
+                )}
+                {musician.soundcloud_url && (
+                  <a href={musician.soundcloud_url} target="_blank" rel="noreferrer"
+                    className="block rounded-lg border border-border p-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+                    ♪ Listen on SoundCloud
+                  </a>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {reviews && reviews.length > 0 && (
             <Card>
               <CardHeader><CardTitle className="text-base">Reviews</CardTitle></CardHeader>

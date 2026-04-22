@@ -3,7 +3,9 @@ import { Music2, Search } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-export function OrganizerDashboard({ profile }: { profile: any }) {
+interface Profile { full_name: string | null }
+
+export function OrganizerDashboard({ profile }: { profile: Profile | null }) {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="mb-2 text-2xl font-bold tracking-tight">

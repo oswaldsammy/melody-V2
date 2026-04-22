@@ -10,23 +10,39 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
+import { AvatarUpload } from '@/components/avatar-upload'
+import { MediaUploader } from '@/components/media-uploader'
 import { toast } from 'sonner'
 import { X } from 'lucide-react'
+import { GENRES, INSTRUMENTS } from '@/lib/constants'
 
-const GENRE_OPTIONS = [
-  'Jazz', 'Classical', 'Rock', 'Pop', 'Blues', 'Country', 'R&B', 'Hip Hop',
-  'Folk', 'Electronic', 'Latin', 'Gospel', 'Reggae', 'Funk', 'Soul', 'Metal',
-  'Acoustic', 'Wedding', 'Corporate', 'DJ',
-]
+export interface ProfileRow {
+  id: string
+  full_name: string | null
+  email: string
+  avatar_url: string | null
+  role: 'musician' | 'organizer'
+}
 
-const INSTRUMENT_OPTIONS = [
-  'Guitar', 'Piano', 'Violin', 'Drums', 'Bass', 'Vocals', 'Saxophone',
-  'Trumpet', 'Flute', 'Cello', 'Keyboard', 'Ukulele', 'Harp', 'DJ Decks',
-]
+export interface MusicianRow {
+  id: string
+  bio: string | null
+  city: string | null
+  state: string | null
+  rate_per_hour: number | null
+  rate_per_event: number | null
+  years_experience: number | null
+  is_available: boolean
+  genres: string[] | null
+  instruments: string[] | null
+  media_urls: string[] | null
+  youtube_url: string | null
+  soundcloud_url: string | null
+}
 
 interface Props {
-  profile: any
-  musician: any
+  profile: ProfileRow
+  musician: MusicianRow | null
 }
 
 export function MusicianProfileForm({ profile, musician }: Props) {
@@ -43,10 +59,11 @@ export function MusicianProfileForm({ profile, musician }: Props) {
   const [isAvailable, setIsAvailable] = useState(musician?.is_available ?? true)
   const [genres, setGenres] = useState<string[]>(musician?.genres ?? [])
   const [instruments, setInstruments] = useState<string[]>(musician?.instruments ?? [])
+  const [youtubeUrl, setYoutubeUrl] = useState(musician?.youtube_url ?? '')
+  const [soundcloudUrl, setSoundcloudUrl] = useState(musician?.soundcloud_url ?? '')
 
   const toggleGenre = (g: string) =>
     setGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])
-
   const toggleInstrument = (i: string) =>
     setInstruments(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])
 
@@ -58,23 +75,25 @@ export function MusicianProfileForm({ profile, musician }: Props) {
       supabase.from('profiles').update({ full_name: fullName }).eq('id', profile.id),
       supabase.from('musicians').upsert({
         id: profile.id,
-        bio,
-        city,
-        state,
+        bio: bio || null,
+        city: city || null,
+        state: state || null,
         rate_per_hour: ratePerHour ? parseInt(ratePerHour) : null,
         rate_per_event: ratePerEvent ? parseInt(ratePerEvent) : null,
         years_experience: yearsExp ? parseInt(yearsExp) : 0,
         is_available: isAvailable,
         genres,
         instruments,
+        youtube_url: youtubeUrl || null,
+        soundcloud_url: soundcloudUrl || null,
         updated_at: new Date().toISOString(),
       }),
     ])
 
     if (profileRes.error || musicianRes.error) {
-      toast.error('Failed to save profile')
+      toast.error(profileRes.error?.message ?? musicianRes.error?.message ?? 'Failed to save')
     } else {
-      toast.success('Profile saved!')
+      toast.success('Profile saved')
       router.refresh()
     }
     setLoading(false)
@@ -82,6 +101,14 @@ export function MusicianProfileForm({ profile, musician }: Props) {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader><CardTitle className="text-base">Profile photo</CardTitle></CardHeader>
+        <CardContent>
+          <AvatarUpload userId={profile.id} currentUrl={profile.avatar_url} name={fullName || profile.email} />
+          <p className="mt-2 text-xs text-muted-foreground">Click to upload a new photo</p>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader><CardTitle className="text-base">Basic Info</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -131,7 +158,7 @@ export function MusicianProfileForm({ profile, musician }: Props) {
       <Card>
         <CardHeader><CardTitle className="text-base">Genres</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          {GENRE_OPTIONS.map(g => (
+          {GENRES.map(g => (
             <Badge
               key={g}
               variant={genres.includes(g) ? 'default' : 'outline'}
@@ -148,7 +175,7 @@ export function MusicianProfileForm({ profile, musician }: Props) {
       <Card>
         <CardHeader><CardTitle className="text-base">Instruments</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          {INSTRUMENT_OPTIONS.map(i => (
+          {INSTRUMENTS.map(i => (
             <Badge
               key={i}
               variant={instruments.includes(i) ? 'default' : 'outline'}
@@ -159,6 +186,27 @@ export function MusicianProfileForm({ profile, musician }: Props) {
               {i}
             </Badge>
           ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Portfolio photos</CardTitle></CardHeader>
+        <CardContent>
+          <MediaUploader userId={profile.id} urls={musician?.media_urls ?? []} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Audio & Video</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="yt">YouTube URL</Label>
+            <Input id="yt" placeholder="https://youtube.com/watch?v=…" value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="sc">SoundCloud URL</Label>
+            <Input id="sc" placeholder="https://soundcloud.com/…" value={soundcloudUrl} onChange={e => setSoundcloudUrl(e.target.value)} />
+          </div>
         </CardContent>
       </Card>
 
